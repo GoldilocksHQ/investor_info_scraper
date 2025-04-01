@@ -1,0 +1,11 @@
+venv/
+myvenv/
+__pycache__/
+*.pyc
+output/
+data/html/
+data/output/
+logs/
+old_files/
+.DS_Store
+.env
