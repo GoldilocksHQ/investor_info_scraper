@@ -13,7 +13,14 @@ Usage:
 import os
 import sys
 import json
-from investor_parser.core.parser import InvestorProfileParser
+
+# Try to import from src structure (if installed as package)
+try:
+    from src.investor_parser.core.parser import InvestorProfileParser
+except ImportError:
+    # Fallback to local import
+    sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))
+    from custom_parser import InvestorProfileParser
 
 def main():
     # Create output and logs directories if they don't exist
@@ -36,35 +43,59 @@ def main():
     data = parser.parse()
     
     # Display the extracted information
-    print(f"Name: {data['name']}")
-    print(f"Position: {data['position']}")
-    print(f"Firm: {data['firm']}")
-    print(f"Location: {data['location']}")
-    print(f"Extraction method: {data['extraction_method']}")
+    print(f"Name: {data.get('name', 'Unknown')}")
+    print(f"Position: {data.get('position', 'None')}")
+    print(f"Firm: {data.get('firm', 'None')}")
+    print(f"Location: {data.get('location', 'None')}")
+    print(f"Extraction method: {data.get('extraction_method', 'Unknown')}")
     
-    print(f"Roles: {', '.join(data['roles'])}")
-    print(f"Areas of Interest: {', '.join(data['areas_of_interest'])}")
-    print(f"Co-investors: {', '.join(data['co_investors'][:5])}")
-    print(f"Scouts & Angels: {', '.join(data['scouts_angels'][:5])}")
+    print(f"Roles: {', '.join(data.get('roles', []))}")
+    print(f"Areas of Interest: {', '.join(data.get('areas_of_interest', []))}")
     
-    if data['investment_range']['min'] and data['investment_range']['max']:
-        print(f"Investment range: ${data['investment_range']['min']:,} - ${data['investment_range']['max']:,}")
+    if 'co_investors' in data and data['co_investors']:
+        print(f"Co-investors: {', '.join(data['co_investors'][:5])}")
+    else:
+        print("Co-investors: None")
+        
+    if 'scouts_angels' in data and data['scouts_angels']:
+        print(f"Scouts & Angels: {', '.join(data['scouts_angels'][:5])}")
+    else:
+        print("Scouts & Angels: None")
     
-    if data['investment_range']['target']:
-        print(f"Sweet spot: ${data['investment_range']['target']:,}")
+    investment_range = data.get('investment_range', {})
+    if investment_range.get('min') and investment_range.get('max'):
+        print(f"Investment range: ${investment_range['min']:,} - ${investment_range['max']:,}")
     
-    if data['current_fund_size']:
+    if investment_range.get('target'):
+        print(f"Sweet spot: ${investment_range['target']:,}")
+    
+    if data.get('current_fund_size'):
         print(f"Current fund size: ${data['current_fund_size']:,}")
     
     # Show a few sample investments
-    print(f"\nInvestments ({len(data['investments'])} total):")
-    for i, inv in enumerate(data['investments'][:3]):
-        print(f"\n{i+1}. {inv['company']} (Total raised: {inv['total_raised']})")
-        print(f"   Co-investors: {', '.join(inv['coinvestors'][:3]) if inv['coinvestors'] else 'None identified'}")
-        print(f"   Rounds:")
-        for round in inv['rounds'][:2]:
-            lead_status = " (Lead)" if round['is_lead'] else ""
-            print(f"   - {round['stage']} ({round['date']}): {round['amount']}{lead_status}")
+    investments = data.get('investments', [])
+    print(f"\nInvestments ({len(investments)} total):")
+    
+    if not investments:
+        print("  No investment data available")
+    else:
+        for i, inv in enumerate(investments[:3]):
+            print(f"\n{i+1}. {inv.get('company', 'Unknown')} (Total raised: {inv.get('total_raised', 'Unknown')})")
+            
+            coinvestors = inv.get('coinvestors', [])
+            if coinvestors:
+                print(f"   Co-investors: {', '.join(coinvestors[:3])}")
+            else:
+                print("   Co-investors: None identified")
+                
+            print(f"   Rounds:")
+            rounds = inv.get('rounds', [])
+            if not rounds:
+                print("     No round data available")
+            else:
+                for round in rounds[:2]:
+                    lead_status = " (Lead)" if round.get('is_lead') else ""
+                    print(f"   - {round.get('stage', 'Unknown')} ({round.get('date', 'Unknown')}): {round.get('amount', 'Unknown')}{lead_status}")
     
     # Save the result to a JSON file for inspection
     output_file = "data/output/parsed_investor.json"

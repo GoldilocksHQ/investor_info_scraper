@@ -1,11 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
 venv/
 myvenv/
-__pycache__/
-*.pyc
-output/
-data/html/
-data/output/
+
+# Logs
 logs/
-old_files/
+*.log
+
+# Data files
+data/html/*
+data/output/*
+data/queue_state.json
+!data/html/.gitkeep
+!data/output/.gitkeep
+
+# Screenshots
+data/screenshots/
+
+# Temporary files
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
 .DS_Store
-.env
+
+# Ignore data directories except .gitkeep files
+output/*
+!output/.gitkeep
+old_files/
